@@ -122,7 +122,6 @@ class SmartIRClimate(ClimateEntity, RestoreEntity):
 
         self._target_temperature = self._min_temperature
         self._hvac_mode = HVAC_MODE_OFF
-        self._previous_hvac_mode = HVAC_MODE_OFF # Added by lonsdaleite
         self._current_fan_mode = self._fan_modes[0]
         self._current_swing_mode = None
         self._last_on_operation = None
@@ -319,15 +318,10 @@ class SmartIRClimate(ClimateEntity, RestoreEntity):
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set operation mode."""
-        self._previous_hvac_mode = self._hvac_mode # Added by lonsdaleite
         self._hvac_mode = hvac_mode
         
         if not hvac_mode == HVAC_MODE_OFF:
             self._last_on_operation = hvac_mode
-            # Added by lonsdaleite
-            if self._previous_hvac_mode == HVAC_MODE_OFF and 'on' in self._commands:
-                await self._controller.send(self._commands['on'])
-                await asyncio.sleep(self._delay)
 
         await self.send_command()
         await self.async_update_ha_state()
@@ -372,10 +366,9 @@ class SmartIRClimate(ClimateEntity, RestoreEntity):
                     await self._controller.send(self._commands['off'])
                     return
 
-                # Commented by lonsdaleite
-                # if 'on' in self._commands:
-                #     await self._controller.send(self._commands['on'])
-                #     await asyncio.sleep(self._delay)
+                if 'on' in self._commands:
+                    await self._controller.send(self._commands['on'])
+                    await asyncio.sleep(self._delay)
 
                 if self._support_swing == True:
                     await self._controller.send(
